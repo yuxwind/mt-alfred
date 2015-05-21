@@ -36,7 +36,7 @@
 				<key>plusspaces</key>
 				<false/>
 				<key>url</key>
-				<string>http://www.meituan.com/s/?w={query}&amp;mtt=1.index%2Fchangecity.0.0.i9xsufr8 </string>
+				<string>{query}</string>
 				<key>utf8</key>
 				<true/>
 			</dict>
@@ -53,7 +53,7 @@
 				<key>argumenttype</key>
 				<integer>0</integer>
 				<key>escaping</key>
-				<integer>68</integer>
+				<integer>124</integer>
 				<key>keyword</key>
 				<string>mt</string>
 				<key>queuedelaycustom</key>
@@ -67,7 +67,8 @@
 				<key>runningsubtext</key>
 				<string>请输入查询词</string>
 				<key>script</key>
-				<string># encoding: utf-8
+				<string># -*- coding: utf-8 -*-
+
 import StringIO, gzip, alfred, urllib, urllib2, datetime, re,sys
 try:
     import xml.etree.cElementTree as ET
@@ -76,10 +77,11 @@ except ImportError:
 
 reload(sys) 
 sys.setdefaultencoding('UTF-8')
-theQuery = u'{query}'
-print theQuery
+originQuery = '{query}'
+#originQuery = '合利屋'
+#print originQuery
 #theQuery = u'%E5%90%88%E5%88%A9%E5%B1%8B'
-theQuery = urllib.quote_plus(theQuery)
+theQuery = urllib.quote_plus(originQuery)
 #url = 'http://dict-co.iciba.com/api/dictionary.php?key=F8B564ADA8E6D4FCB81ACFF2B0BC5478&amp;w=%s' % theQuery
 url = 'http://www.meituan.com/s/?w=%s&amp;mtt=1.index%%2Fchangecity.0.0.i9xsufr8' % theQuery
 #print url
@@ -95,7 +97,7 @@ actual_data = gzip_stream.read()
 
 #p = re.compile(r'.*?\[(?P&lt;source&gt;.*?)\] to \[(?P&lt;dst&gt;.*?)\] .*')
 p = re.compile(r'\&lt;h3 class=\"deal-tile__title\"\&gt;.*?\&lt;\/h3\&gt;.*?\&lt;p class=\"deal-tile__detail\"\&gt;.*?\&lt;\/p\&gt;',re.S)
-title_re = re.compile(r'.*?title=\"(?P&lt;title&gt;.*?)\".*',re.S)
+title_re = re.compile(r'.*?\&lt;a href=\"(?P&lt;url&gt;.*?)\".*?title=\"(?P&lt;title&gt;.*?)\".*',re.S)
 #dict = ET.fromstring(actual_data)
 #poses = dict.findall('pos')
 #acceptations = dict.findall('acceptation')
@@ -106,13 +108,15 @@ results = []
 if len(items) &gt; 0 :
 	index = 0
 	for item in items:
-		title = title_re.match(item).group('title')
-		subtitle = 'test'
-		aitem = alfred.Item({'uid': index, 'arg' : theQuery}, title, subtitle)
+		m = title_re.match(item)
+                title = m.group('title')
+		url = m.group('url')
+                subtitle = 'test'
+		aitem = alfred.Item({'uid': index, 'arg' : url}, title, subtitle)
 		results.append(aitem)
 		index += 1
 else :
-	aitem = alfred.Item({'uid': 1, 'arg' : theQuery}, 'Not Found', '')
+	aitem = alfred.Item({'uid': 1, 'arg' : "http://www.meituan.com/"}, 'Not Found', '')
 	results.append(aitem)
 
 xml = alfred.xml(results)
